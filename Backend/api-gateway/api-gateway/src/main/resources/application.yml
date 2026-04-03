@@ -1,0 +1,31 @@
+server:
+  port: 9091
+
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+
+spring:
+  application:
+    name: api-gateway
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/Crises-app
+
+  cloud:
+    gateway:
+      routes:
+        - id: core-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/admin/**
+          filters:
+            - StripPrefix=1
+
+        - id: location-service
+          uri: http://localhost:9090
+          predicates:
+            - Path=/location/**

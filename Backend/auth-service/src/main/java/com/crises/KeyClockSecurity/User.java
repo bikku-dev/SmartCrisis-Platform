@@ -1,0 +1,33 @@
+package com.crises.KeyClockSecurity;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+
+import java.time.LocalDateTime;
+
+@Document(collection = "users")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class User {
+
+    @Id
+    private String id;
+
+    private String name;
+    private String phone;
+    private String role;
+
+    private String keycloakId;
+
+    private double latitude;
+    private double longitude;
+
+    private LocalDateTime createdAt;
+}

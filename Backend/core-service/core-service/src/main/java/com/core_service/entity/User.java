@@ -26,5 +26,5 @@ public class User {
     private double latitude;
     private double longitude;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt =LocalDateTime.now();
 }
