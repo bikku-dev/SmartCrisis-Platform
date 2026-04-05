@@ -11,12 +11,10 @@ import reactor.core.publisher.Flux;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
-    // ✅ Converter (Realm + Client roles dono handle karega)
     @Bean
     public ReactiveJwtAuthenticationConverter jwtAuthenticationConverter() {
 
@@ -56,14 +54,12 @@ public class SecurityConfig {
                 }
             }
 
-            // 🔥 IMPORTANT FIX
             return Flux.fromIterable(authorities);
         });
 
         return converter;
     }
 
-    // ✅ Security Config
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
 
@@ -71,14 +67,30 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeExchange(exchange -> exchange
+
+                        // ✅ Public APIs (no auth)
                         .pathMatchers("/public/**").permitAll()
-                        .pathMatchers("/admin/**").hasRole("ADMIN")
+
+                        // 🔐 CORE SERVICE (secured)
+                        .pathMatchers("/core/**")
+                        .hasAnyRole("USER", "ADMIN", "HOSPITAL")
+
+                        // 🔐 LOCATION SERVICE
                         .pathMatchers("/location/**")
                         .hasAnyRole("VOLUNTEER", "ADMIN", "USER", "HOSPITAL")
+
+                        // 🔐 ADMIN APIs
+                        .pathMatchers("/admin/**")
+                        .hasRole("ADMIN")
+
+                        .pathMatchers("/ai/**")
+                        .hasAnyRole("USER","ADMIN")
+
+                        // 🔒 Baaki sab authenticated hona chahiye
                         .anyExchange().authenticated()
                 )
 
-                // 🔥 MOST IMPORTANT FIX (converter use karo)
+                // 🔑 Keycloak JWT validation
                 .oauth2ResourceServer(oauth -> oauth
                         .jwt(jwt -> jwt
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter())

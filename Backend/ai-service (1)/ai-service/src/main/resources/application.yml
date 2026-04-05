@@ -1,0 +1,25 @@
+#server:
+#  port: 8087
+#
+#spring:
+#  application:
+#    name: AI-SERVICE
+#
+#  data:
+#    mongodb:
+#      uri: mongodb://localhost:27017/ai_db
+#
+#  kafka:
+#    bootstrap-servers: localhost:9092
+#
+#groq:
+#  api:
+#    key: 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
+#    url: https://api.groq.com/openai/v1/chat/completions
+#    model: llama3-8b-8192
+#
+#eureka:
+#  client:
+#    enabled: false
+#    register-with-eureka: false
+#    fetch-registry: false

@@ -9,14 +9,14 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.2.5</version> <!-- ✅ stable -->
+		<version>3.2.5</version> <!-- ✅ stable use kar -->
 		<relativePath/>
 	</parent>
 
-	<groupId>com.example</groupId>
-	<artifactId>core-service</artifactId>
+	<groupId>com.smartcrisis</groupId>
+	<artifactId>service-registry</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>core-service</name>
+	<name>service-registry</name>
 
 	<properties>
 		<java.version>17</java.version> <!-- ✅ recommended -->
@@ -25,36 +25,16 @@
 
 	<dependencies>
 
-		<!-- Web -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
-
-		<!-- MongoDB -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-mongodb</artifactId>
-		</dependency>
-
-		<!-- Eureka Client -->
+		<!-- 🔥 Eureka Server -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+			<artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
 		</dependency>
 
-		<!-- Lombok -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
-		</dependency>
-
-		<!-- DevTools -->
+		<!-- Optional (health check UI) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
+			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 
 		<!-- Test -->
@@ -66,7 +46,7 @@
 
 	</dependencies>
 
-	<!-- 🔥 IMPORTANT -->
+	<!-- 🔥 VERY IMPORTANT -->
 	<dependencyManagement>
 		<dependencies>
 			<dependency>

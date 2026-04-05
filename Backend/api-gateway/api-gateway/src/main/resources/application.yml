@@ -7,25 +7,40 @@ logging:
 
 spring:
   application:
-    name: api-gateway
+    name: API-GATEWAY
 
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/Crises-app
+          issuer-uri: http://localhost:8080/realms/crisisAi
 
   cloud:
     gateway:
       routes:
-        - id: core-service
-          uri: http://localhost:8082
-          predicates:
-            - Path=/admin/**
-          filters:
-            - StripPrefix=1
 
+        # ✅ CORE SERVICE
+        - id: core-service
+          uri: lb://CORE-SERVICE
+          predicates:
+            - Path=/core/**
+
+        # ✅ LOCATION SERVICE
         - id: location-service
-          uri: http://localhost:9090
+          uri: lb://LOCATION-SERVICE
           predicates:
             - Path=/location/**
+
+        # ✅ AI SERVICE
+        - id: ai-service
+          uri: lb://AI-SERVICE
+          predicates:
+            - Path=/ai/**
+          filters:
+            - StripPrefix=1   # 🔥 FIXED (IMPORTANT)
+
+# ✅ Eureka config
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

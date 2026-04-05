@@ -9,12 +9,20 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
+
 public class LocationService {
 
     private final LocationRepository repository;
     private final RedisTemplate<String, Object> redisTemplate;
+
+    public LocationService(LocationRepository repository, RedisTemplate<String, Object> redisTemplate, SimpMessagingTemplate messagingTemplate) {
+        this.repository = repository;
+        this.redisTemplate = redisTemplate;
+        this.messagingTemplate = messagingTemplate;
+    }
+
     private final SimpMessagingTemplate messagingTemplate;
+
 
     public void updateLocation(LocationDTO dto) {
 
