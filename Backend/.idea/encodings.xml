@@ -5,5 +5,6 @@
     <file url="file://$PROJECT_DIR$/auth-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/core-service/core-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/location-service/location-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-registry/service-registry/src/main/java" charset="UTF-8" />
   </component>
 </project>
