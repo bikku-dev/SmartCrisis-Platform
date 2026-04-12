@@ -25,9 +25,13 @@ import { toast } from 'sonner';
 import { AITriageService, VoiceService } from '../services/aiService';
 import { mockUser } from '../data/mockData';
 import type { EmergencyType, EmergencySeverity } from '../types';
-
+import API from '../api/api';
 export function EmergencyRequest() {
   const navigate = useNavigate();
+  const [patientName, setPatientName] = useState('');
+  const [age, setAge] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
+  const [medicalConditions, setMedicalConditions] = useState('');
   const [description, setDescription] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -48,7 +52,7 @@ export function EmergencyRequest() {
       const transcription = await VoiceService.transcribeAudio();
       setDescription(transcription);
       toast.success('Voice recorded successfully');
-      
+
       // Auto-analyze after voice input
       handleAnalyze(transcription);
     } catch (error) {
@@ -60,51 +64,68 @@ export function EmergencyRequest() {
 
   const handleAnalyze = (text?: string) => {
     const textToAnalyze = text || description;
-    
+
     if (!textToAnalyze.trim()) {
       toast.error('Please describe the emergency');
       return;
     }
 
     setIsAnalyzing(true);
-    
+
     setTimeout(() => {
       const result = AITriageService.classifyEmergency(textToAnalyze);
       setAiResult(result);
       setIsAnalyzing(false);
-      
+
       toast.success('AI analysis complete', {
         description: `Detected: ${result.type.replace('_', ' ')} - ${result.severity} severity`
       });
     }, 2000);
   };
 
-  const handleSubmit = () => {
-    if (!description.trim()) {
-      toast.error('Please describe the emergency');
-      return;
-    }
+ const handleSubmit = async () => {
+  if (!description.trim()) {
+    toast.error('Please describe the emergency');
+    return;
+  }
 
-    if (!aiResult) {
-      toast.warning('Running AI analysis first...');
-      handleAnalyze();
-      return;
-    }
+  if (!aiResult) {
+    toast.warning('Running AI analysis first...');
+    handleAnalyze();
+    return;
+  }
 
+  try {
     setIsSubmitting(true);
-    toast.loading('Submitting emergency request...');
 
-    setTimeout(() => {
-      toast.dismiss();
-      toast.success('Emergency request submitted!', {
-        description: 'Help is on the way. Redirecting to tracking...'
-      });
+    const payload = {
+      description,
+      type: aiResult.type.toUpperCase(),        // 🔥 ENUM FIX
+      severity: aiResult.severity.toUpperCase(),// 🔥 ENUM FIX
+      latitude: 28.6139,
+      longitude: 77.2090,
+      address: mockUser.location?.address || "Unknown",
+      patientName,
+      age: age ? Number(age) : 0,
+      contactNumber,
+      medicalConditions
+    };
 
-      setTimeout(() => {
-        navigate('/emergency/emg-1/tracking');
-      }, 1500);
-    }, 2000);
-  };
+    console.log("PAYLOAD:", payload);
+
+    const res = await API.post("/emergencies", payload);
+
+    toast.success('Emergency request submitted!');
+
+    navigate(`/emergency/${res.data.id}/tracking`);
+
+  } catch (err: any) {
+    console.error(err);
+    toast.error(err?.response?.data?.message || "Submission failed");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -262,8 +283,8 @@ export function EmergencyRequest() {
                       {aiResult.riskScore}/100
                     </span>
                   </div>
-                  <Progress 
-                    value={aiResult.riskScore} 
+                  <Progress
+                    value={aiResult.riskScore}
                     className="h-2"
                   />
                 </div>
@@ -287,11 +308,11 @@ export function EmergencyRequest() {
                     <div>
                       <p className="text-sm">
                         <span className="font-medium">Recommended Action:</span>{' '}
-                        {aiResult.severity === 'critical' 
+                        {aiResult.severity === 'critical'
                           ? 'Immediate dispatch of Advanced Life Support unit'
                           : aiResult.severity === 'high'
-                          ? 'Priority dispatch with Basic Life Support unit'
-                          : 'Standard emergency response protocol'}
+                            ? 'Priority dispatch with Basic Life Support unit'
+                            : 'Standard emergency response protocol'}
                       </p>
                     </div>
                   </div>
@@ -313,21 +334,21 @@ export function EmergencyRequest() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="patientName">Patient Name</Label>
-                  <Input id="patientName" placeholder="Full name" />
+                  <Input id="patientName" placeholder="Full name" onChange={(e) => setPatientName(e.target.value)} />
                 </div>
                 <div>
                   <Label htmlFor="age">Age</Label>
-                  <Input id="age" type="number" placeholder="Age" />
+                  <Input id="age" type="number" placeholder="Age" onChange={(e) => setAge(e.target.value)} />
                 </div>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="contact">Contact Number</Label>
-                  <Input id="contact" type="tel" placeholder="+1 (555) 000-0000" />
+                  <Input id="contact" type="tel" placeholder="+1 (555) 000-0000" onChange={(e) => setContactNumber(e.target.value)} />
                 </div>
                 <div>
                   <Label htmlFor="medical">Medical Conditions</Label>
-                  <Input id="medical" placeholder="e.g., Diabetes, Asthma" />
+                  <Input id="medical" placeholder="e.g., Diabetes, Asthma" onChange={(e) => setMedicalConditions(e.target.value)} />
                 </div>
               </div>
             </div>

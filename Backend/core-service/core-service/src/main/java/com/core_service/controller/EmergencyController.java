@@ -1,44 +1,64 @@
 package com.core_service.controller;
 
-import com.core_service.dto.AssignResponseDTO;
-import com.core_service.dto.EmergencyRequestDTO;
+import com.core_service.dto.EmergencyRequest;
 import com.core_service.entity.Emergency;
 import com.core_service.enums.EmergencyStatus;
+
+
 import com.core_service.service.EmergencyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/emergencies")
+@RequestMapping("/api/emergencies")
 @RequiredArgsConstructor
 public class EmergencyController {
 
     private final EmergencyService service;
 
-    // 🚨 Create Emergency
+    // ✅ Create Emergency
     @PostMapping
-    public AssignResponseDTO create(@RequestBody EmergencyRequestDTO dto) {
-        return service.createEmergency(dto);
+    public Emergency create(@RequestBody EmergencyRequest req,
+                            @AuthenticationPrincipal Jwt jwt) {
+
+        String userId = jwt.getSubject(); // ✔ Keycloak user ID
+        return service.createEmergency(userId, req);
     }
 
-    // 🔍 Get by ID
-    @GetMapping("/{id}")
-    public Emergency getById(@PathVariable String id) {
-        return service.getById(id);
+    // ✅ Active Emergencies (Dashboard)
+    @GetMapping("/active")
+    public List<Emergency> active() {
+        return service.getActiveEmergencies();
     }
 
-    // 📋 Get all
-    @GetMapping
-    public List<Emergency> getAll() {
-        return service.getAll();
+    // ✅ User History
+    @GetMapping("/history")
+    public List<Emergency> history(@AuthenticationPrincipal Jwt jwt) {
+        return service.getUserHistory(jwt.getSubject());
+
+    }
+    @PostMapping("/analyze")
+    public Map<String, String> analyze(@RequestBody EmergencyRequest req) {
+
+        // Dummy logic (replace with AI later)
+        String severity = req.getDescription().contains("chest pain")
+                ? "CRITICAL" : "LOW";
+
+        return Map.of(
+                "type", "MEDICAL",
+                "severity", severity
+        );
     }
 
-    // 🔄 Update status
+    // ✅ Update Status (resolve / dispatch etc.)
     @PutMapping("/{id}/status")
-    public Emergency updateStatus(@PathVariable String id,
-                                  @RequestParam EmergencyStatus status) {
+    public Emergency update(@PathVariable String id,
+                            @RequestParam EmergencyStatus status) {
         return service.updateStatus(id, status);
     }
 }

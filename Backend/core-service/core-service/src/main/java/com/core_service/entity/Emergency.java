@@ -1,7 +1,7 @@
 package com.core_service.entity;
 
 import com.core_service.enums.EmergencyStatus;
-import com.core_service.enums.EmergencyType;
+
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -21,16 +21,24 @@ public class Emergency {
 
     private String userId;
 
-    private EmergencyType type;
+    private String type;
     private EmergencyStatus status;
+
+    private String description;   // 🔥 UI se add
+    private String severity;      // LOW / HIGH / CRITICAL
 
     private double latitude;
     private double longitude;
+    private String address;       // 🔥 UI location
 
     private String hospitalId;
     private String volunteerId;
 
+    private int etaMinutes;       // 🔥 UI ETA
+
     private int priority;
+
+    private boolean resolved;     // 🔥 history ke liye
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

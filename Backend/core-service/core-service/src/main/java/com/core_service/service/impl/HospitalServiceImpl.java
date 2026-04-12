@@ -17,6 +17,8 @@ public class HospitalServiceImpl implements HospitalService {
 
     private final HospitalRepository repo;
 
+
+
     @Override
     public Hospital save(Hospital hospital) {
         hospital.setId(UUID.randomUUID().toString());
@@ -30,10 +32,30 @@ public class HospitalServiceImpl implements HospitalService {
 
     @Override
     public Hospital findNearest(double lat, double lon) {
+
         return repo.findAll().stream()
-                .min(Comparator.comparing(h ->
-                        DistanceUtil.calculate(lat, lon,
-                                h.getLatitude(), h.getLongitude())))
+                .min(Comparator.comparing(h -> {
+
+                    double hLat = h.getLocation()[1];
+                    double hLng = h.getLocation()[0];
+
+                    return DistanceUtil.calculate(lat, lon, hLat, hLng);
+                }))
                 .orElseThrow(() -> new RuntimeException("No hospital found"));
+    }
+
+    @Override
+    public List<Hospital> getNearby(double lat, double lon) {
+
+        return repo.findAll().stream()
+                .sorted(Comparator.comparing(h -> {
+
+                    double hLat = h.getLocation()[1];
+                    double hLng = h.getLocation()[0];
+
+                    return DistanceUtil.calculate(lat, lon, hLat, hLng);
+                }))
+                .limit(5)
+                .toList();
     }
 }

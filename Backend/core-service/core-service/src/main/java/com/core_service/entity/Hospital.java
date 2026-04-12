@@ -2,6 +2,8 @@ package com.core_service.entity;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
+import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "hospitals")
@@ -16,8 +18,10 @@ public class Hospital {
 
     private String name;
 
-    private double latitude;
-    private double longitude;
+    private String address;
+
+    @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
+    private double[] location; // [longitude, latitude]
 
     private int availableBeds;
     private int icuBeds;

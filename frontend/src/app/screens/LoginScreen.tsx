@@ -15,21 +15,92 @@ export function LoginScreen() {
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast.success('Login successful! Redirecting...');
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 1000);
-  };
+const KEYCLOAK_URL = "http://localhost:8080";
+const REALM = "Crises-app";
+const CLIENT_ID = "spring-client";
+const REDIRECT_URI = "http://localhost:5173/dashboard";
 
-  const handleGoogleLogin = () => {
-    toast.success('Google authentication successful!');
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 1000);
-  };
+// 🔐 generate PKCE
+const generateCodeVerifier = () => {
+  return [...Array(64)]
+    .map(() => Math.random().toString(36)[2])
+    .join("");
+};
 
+const sha256 = async (plain: string) => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(plain);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+};
+
+// ✅ LOGIN (Keycloak redirect)
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const res = await fetch(
+      "http://localhost:8080/realms/Crises-app/protocol/openid-connect/token",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+          grant_type: "password",
+          client_id: "spring-client",
+          client_secret: "YOUR_CLIENT_SECRET", // 🔥 important
+          username: email,
+          password: password,
+          scope: "openid profile email"
+        })
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error_description || "Login failed");
+    }
+
+    // ✅ SAVE TOKENS
+    localStorage.setItem("accessToken", data.access_token);
+    localStorage.setItem("refreshToken", data.refresh_token);
+
+    console.log("✅ LOGIN SUCCESS", data);
+
+    navigate("/dashboard");
+
+  } catch (err: any) {
+    console.error(err);
+    toast.error(err.message);
+  }
+};
+
+// ✅ GOOGLE LOGIN
+const handleGoogleLogin = async () => {
+
+  const codeVerifier = generateCodeVerifier();
+  localStorage.setItem("pkce_verifier", codeVerifier);
+
+  const codeChallenge = await sha256(codeVerifier);
+
+  const params = new URLSearchParams({
+    client_id: CLIENT_ID,
+    response_type: "code",
+    scope: "openid",
+    redirect_uri: REDIRECT_URI,
+    code_challenge: codeChallenge,
+    code_challenge_method: "S256",
+    kc_idp_hint: "google"
+  });
+
+  window.location.href =
+    `${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/auth?${params}`;
+};
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row">
       {/* Left side - Branding */}
